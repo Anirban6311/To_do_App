@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:testapp/widgets/drawer_widget.dart';
 
 import '../model/todo.dart';
+import '../widgets/searchBox.dart';
 import '../widgets/todo_item.dart';
+import '../widgets/appBarWidget.dart';
 
 class Home extends StatefulWidget {
   Home({Key? key}) : super(key: key);
@@ -23,57 +26,58 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: _buildAppBar(),
-      body: Stack(
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 20,
-              vertical: 15,
+    return Container(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+          image: AssetImage("Images/blue-background.jpg"),
+          fit: BoxFit.cover,
+        ),
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBarWidget(),
+        drawer: DrawerWidget(),
+        body: Column(
+          children: [
+            SizedBox(height: 20),
+            searchBox(),
+            SizedBox(height: 40),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                'Things to check out!',
+                style: TextStyle(
+                  fontSize: 35,
+                  fontWeight: FontWeight.bold,
+
+                ),
+              ),
             ),
-            child: Column(
-              children: [
-                searchBox(),
-                Expanded(
-                  child: ListView(
-                    children: [
-                      Container(
-                        margin: EdgeInsets.only(
-                          top: 50,
-                          bottom: 20,
-                        ),
-                        child: Text(
-                          'Your Tasks',
-                          style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+            SizedBox(height: 20,),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    for (ToDo todo in _foundToDo)
+                      ToDoItem(
+                        todo: todo,
+                        onToDoChanged: _handleToDoChange,
+                        onDeleteItem: _deleteToDoItem,
                       ),
-                      for (ToDo todoo in _foundToDo.reversed)
-                        ToDoItem(
-                          todo: todoo,
-                          onToDoChanged: _handleToDoChange,
-                          onDeleteItem: _deleteToDoItem,
-                        ),
-                    ],
-                  ),
-                )
-              ],
+                  ],
+                ),
+              ),
             ),
-          ),
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Row(children: [
+          ],
+        ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          color: Colors.transparent,
+          child: Row(
+            children: [
               Expanded(
                 child: Container(
-                  margin: EdgeInsets.only(
-                    bottom: 20,
-                    right: 20,
-                    left: 20,
-                  ),
+                  margin: EdgeInsets.only(right: 20),
                   padding: EdgeInsets.symmetric(
                     horizontal: 20,
                     vertical: 5,
@@ -93,36 +97,32 @@ class _HomeState extends State<Home> {
                   child: TextField(
                     controller: _todoController,
                     decoration: InputDecoration(
-                        hintText: 'Add your new task',
-                        border: InputBorder.none),
-                  ),
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.only(
-                  bottom: 20,
-                  right: 20,
-                ),
-                child: ElevatedButton(
-                  child: Text(
-                    '+',
-                    style: TextStyle(
-                      fontSize: 40,
+                      hintText: 'Add new item',
+                      border: InputBorder.none,
                     ),
                   ),
-                  onPressed: () {
-                    _addToDoItem(_todoController.text);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    primary: Colors.red,
-                    minimumSize: Size(60, 60),
-                    elevation: 10,
-                  ),
                 ),
               ),
-            ]),
+              ElevatedButton(
+                child: Text(
+                  '+',
+                  style: TextStyle(
+                    fontSize: 40,
+                    color: Colors.white,
+                  ),
+                ),
+                onPressed: () {
+                  _addToDoItem(_todoController.text);
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.amberAccent,
+                  minimumSize: Size(60, 60),
+                  elevation: 10,
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -147,72 +147,5 @@ class _HomeState extends State<Home> {
       ));
     });
     _todoController.clear();
-  }
-
-  void _runFilter(String enteredKeyword) {
-    List<ToDo> results = [];
-    if (enteredKeyword.isEmpty) {
-      results = todosList;
-    } else {
-      results = todosList
-          .where((item) => item.todoText!
-              .toLowerCase()
-              .contains(enteredKeyword.toLowerCase()))
-          .toList();
-    }
-
-    setState(() {
-      _foundToDo = results;
-    });
-  }
-
-  Widget searchBox() {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: TextField(
-        onChanged: (value) => _runFilter(value),
-        decoration: InputDecoration(
-          contentPadding: EdgeInsets.all(0),
-          prefixIcon: Icon(
-            Icons.search,
-            color: Colors.black,
-            size: 20,
-          ),
-          prefixIconConstraints: BoxConstraints(
-            maxHeight: 20,
-            minWidth: 25,
-          ),
-          border: InputBorder.none,
-          hintText: 'Search',
-          hintStyle: TextStyle(color: Colors.grey[350]),
-        ),
-      ),
-    );
-  }
-
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.yellow,
-      elevation: 0,
-      title: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Icon(
-          Icons.menu,
-          color: Colors.black,
-          size: 30,
-        ),
-        Container(
-          height: 40,
-          width: 40,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(20),
-            child: Image.asset('Images/avatar.png'),
-          ),
-        ),
-      ]),
-    );
   }
 }
